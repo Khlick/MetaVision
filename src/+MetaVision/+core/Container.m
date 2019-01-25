@@ -9,10 +9,9 @@ classdef (Abstract) Container < handle
   end
   
   properties (SetAccess = protected)
-    handler   iris.data.Handler
-    ui        iris.ui.primary
-    services  iris.infra.menuServices
+    ui        MetaVision.ui.primary
     options
+    logger
   end
   
   properties (Access = private)
@@ -22,18 +21,20 @@ classdef (Abstract) Container < handle
   methods
     
     %Constructor
-    function obj = Container(dataHandler, primaryView, menuService)
-      obj.isStopped = false;
-      obj.ui = primaryView;
-      obj.handler = dataHandler;
-      obj.services = menuService;
-      obj.listeners = cell(0);
-      cName = regexp(class(obj), '(?<=\.)\w*$', 'match', 'once');
-      try
-        options = iris.pref.(cName);
-      catch
-        options = [];
+    function obj = Container(view,options)
+      if nargin < 2
+        cName = regexp(class(obj), '(?<=\.)\w*$', 'match', 'once');
+        try
+          options = MetaVision.settings.(cName);
+        catch
+          options = [];
+        end
       end
+      if nargin < 1
+        view = MetaVision.ui.primary();
+      end
+      obj.ui = view;
+      obj.listeners = cell(0);
       obj.options = options;
     end
     
@@ -66,7 +67,7 @@ classdef (Abstract) Container < handle
   end
   
   methods (Access = protected)
-    
+    % overwrite these methods to control running procedures
     function preRun(obj) %#ok
     end
     
@@ -86,7 +87,6 @@ classdef (Abstract) Container < handle
       catch
         delete(obj.ui)
       end
-      obj.services.shutdown;
     end
     
     function bind(obj)
@@ -147,6 +147,7 @@ classdef (Abstract) Container < handle
       end
     end
     
+    % override this function to handle ui close event
     function onUIClose(obj,~,~)
       obj.stop;
     end

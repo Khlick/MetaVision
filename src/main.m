@@ -1,30 +1,9 @@
 function app = main(varargin)
-if ispc
-  [~,netResult] = system('ping -n 2 8.8.8.8');
-  isConnected = ~str2double(netResult(strfind(netResult,'Lost =')+7));
-elseif isunix
-  [~,netResult] = system('ping -c 2 8.8.8.8');
-  isConnected = str2double(netResult(strfind(netResult,'received')-2))>0;
-elseif ismac
-  [~,netResult] = system('ping -c 2 8.8.8.8');
-  isConnected = str2double(netResult(strfind(netResult,'packets received')-2))>0;
-else
-  isConnected = false;
-end
-
-if ~isConnected
-  error('Iris DVA 2019 requires an internet connection to operate.');
-end
-
 % add the app to the matlab path
 addAppToPath();
 
-% Show the busy presenter and app splash while the rest of the app loads
-splash = iris.ui.busyShow();
-splash.start(sprintf('Iris DVA (c)%s', iris.app.Info.year));
-
 % options
-opts = iris.pref.analysis.getDefault();
+opts = MetaVision.settings.MainEntry.getDefault();
 iris.app.Info.checkDir(opts.OutputDirectory);
 iris.app.Info.checkDir(opts.AnalysisDirectory);
 
