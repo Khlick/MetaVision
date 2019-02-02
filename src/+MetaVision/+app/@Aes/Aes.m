@@ -118,8 +118,6 @@ classdef Aes < handle
       end
     end
     
-    %% Utils
-    str = strLib( stringID )
     
   end
   

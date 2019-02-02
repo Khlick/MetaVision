@@ -1,23 +1,32 @@
-classdef MainEntry
-  %MAINENTRY Summary of this class goes here
-  %   Detailed explanation goes here
+classdef MainEntry < MetaVision.core.StoredPrefs
   
   properties
-    Property1
+    workingDirectory
   end
   
   methods
-    function obj = MainEntry(inputArg1,inputArg2)
-      %MAINENTRY Construct an instance of this class
-      %   Detailed explanation goes here
-      obj.Property1 = inputArg1 + inputArg2;
+   
+    function d = get.workingDirectory(obj)
+      d = obj.get('workingDirectory', ...
+        getenv('UserProfile') ...
+        );
     end
     
-    function outputArg = method1(obj,inputArg)
-      %METHOD1 Summary of this method goes here
-      %   Detailed explanation goes here
-      outputArg = obj.Property1 + inputArg;
+    function set.workingDirectory(obj,d)
+      MetaVision.app.Info.checkDir(d);
+      obj.put('workingDirectory', d);
+    end
+    
+  end
+  
+  methods (Static)
+    function d = getDefault()
+      persistent default;
+      if isempty(default) || ~isvalid(default)
+        default = MetaVision.settings.MainEntry();
+      end
+      d = default;
     end
   end
+  
 end
-

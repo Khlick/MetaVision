@@ -11,7 +11,6 @@ classdef (Abstract) Container < handle
   properties (SetAccess = protected)
     ui        MetaVision.ui.primary
     options
-    logger
   end
   
   properties (Access = private)
@@ -83,8 +82,10 @@ classdef (Abstract) Container < handle
     function close(obj)
       if isempty(obj.ui), return; end
       try
+        % try a safe shutdown
         obj.ui.shutdown;
       catch
+        % or just delete the object
         delete(obj.ui)
       end
     end

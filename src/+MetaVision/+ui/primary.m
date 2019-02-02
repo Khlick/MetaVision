@@ -1,9 +1,21 @@
 classdef primary < MetaVision.ui.UIContainer
   %primary Displays metadata information attached to each open file.
+  events
+    loadFile
+    loadDirectory
+    requestAbout
+    requestSupportedFiles
+  end
+  
   % Properties that correspond to app components
   properties (Access = public)
-    FileInfoLabel   matlab.ui.control.Label
     FileTree        matlab.ui.container.Tree
+    FileMenu            matlab.ui.container.Menu
+    OpenFileMenu        matlab.ui.container.Menu
+    OpenDirectoryMenu   matlab.ui.container.Menu
+    HelpMenu            matlab.ui.container.Menu
+    SupportedFilesMenu  matlab.ui.container.Menu
+    AboutMenu           matlab.ui.container.Menu
     PropNodes    
     PropTable       matlab.ui.control.Table
   end
@@ -37,12 +49,14 @@ classdef primary < MetaVision.ui.UIContainer
   end
   %% Startup and Callback Methods
   methods (Access = protected)
+    
     % Startup
     function startupFcn(obj,varargin)
       if nargin < 2, return; end
       obj.buildUI(varargin{:});
     end
-    %recursion
+    
+    % Recursion
     function recurseInfo(obj, S, name, parentNode)
       for f = 1:length(S)
         if iscell(S)
@@ -99,11 +113,40 @@ classdef primary < MetaVision.ui.UIContainer
       
       treeW = min([floor(w*0.33),208]);
       
-      
       % Create container
-      obj.container.Name = 'File Info';
+      obj.container.Name = sprintf('%s v%s',Info.name,Info.version('major'));
       obj.container.SizeChangedFcn = @obj.containerSizeChanged;
       obj.container.Resize = 'on';
+      
+      % Create FileMenu
+      obj.FileMenu = uimenu(obj.container);
+      obj.FileMenu.Text = 'File';
+
+      % Create OpenFileMenu
+      obj.OpenFileMenu = uimenu(obj.FileMenu);
+      obj.OpenFileMenu.Accelerator = 'O';
+      obj.OpenFileMenu.Text = 'Open File...';
+      obj.OpenFileMenu.MenuSelectedFcn = @(s,e)notify(obj,'loadFile');
+
+      % Create OpenDirectoryMenu
+      obj.OpenDirectoryMenu = uimenu(obj.FileMenu);
+      obj.OpenDirectoryMenu.Accelerator = 'D';
+      obj.OpenDirectoryMenu.Text = 'Open Directory...';
+      obj.OpenDirectoryMenu.MenuSelectedFcn = @(s,e)notify(obj,'loadDirectory');
+      
+      % Create HelpMenu
+      obj.HelpMenu = uimenu(obj.container);
+      obj.HelpMenu.Text = 'Help';
+
+      % Create SupportedFilesMenu
+      obj.SupportedFilesMenu = uimenu(obj.HelpMenu);
+      obj.SupportedFilesMenu.Text = 'Supported Files...';
+      obj.SupportedFilesMenu.MenuSelectedFcn = @(s,e)notify(obj,'requestSupportedFiles');
+      
+      % Create AboutMenu
+      obj.AboutMenu = uimenu(obj.HelpMenu);
+      obj.AboutMenu.Text = 'About';
+      obj.AboutMenu.MenuSelectedFcn = @(s,e)notify(obj,'requestAbout');
       
       % Create FileTree
       obj.FileTree = uitree(obj.container);
@@ -119,23 +162,11 @@ classdef primary < MetaVision.ui.UIContainer
       obj.PropTable.RowName = {};
       obj.PropTable.HandleVisibility = 'off';
       
-
-      % Create FileInfoLabel
-      obj.FileInfoLabel = uilabel(obj.container);
-      obj.FileInfoLabel.HorizontalAlignment = 'Left';
-      obj.FileInfoLabel.VerticalAlignment = 'bottom';
-      obj.FileInfoLabel.FontName = Aes.uiFontName;
-      obj.FileInfoLabel.FontSize = 22;
-      obj.FileInfoLabel.FontWeight = 'bold';
-      
-      obj.FileInfoLabel.Text = '  File Info';
-      
-      obj.FileTree.Position = [10 10 treeW h-35-10-10];
-      obj.PropTable.Position = [treeW+8+10, 10, w-treeW-7-10-10,h-10-10];
-      obj.FileInfoLabel.Position = [10,h-35,treeW,35];
+      obj.FileTree.Position = [10, 10, treeW, h-10-10];
+      obj.PropTable.Position = [treeW+8+10, 10, w-treeW-7-10-10, h-10-10];
     end
     
-    %Destruct View
+    % Destruct View
     function clearView(obj)
       if obj.hasnodes
         cellfun(@delete,obj.PropNodes,'UniformOutput',false);
@@ -144,20 +175,22 @@ classdef primary < MetaVision.ui.UIContainer
         obj.PropTable.Data = {[],[]};
       end
     end
+    
   end
   
   %% Callback
   methods (Access = private)
+    
     % Size changed function: container
     function containerSizeChanged(obj,~,~)
       pos = obj.container.Position;
       w = pos(3);
       h = pos(4);
       treeW = min([floor(w*0.33),208]);
-      obj.FileTree.Position = [10 10 treeW h-35-10-10];
-      obj.PropTable.Position = [treeW+8+10, 10, w-treeW-7-10-10,h-10-10];
-      obj.FileInfoLabel.Position = [10,h-35,treeW,35];
+      obj.FileTree.Position = [10 10 treeW h-10-10];
+      obj.PropTable.Position = [treeW+8+10, 10, w-treeW-7-10-10, h-10-10];
     end
+    
     % Selection Node changed.
     function getSelectedInfo(obj,~,evt)
       if ~isempty(evt.SelectedNodes)
@@ -166,6 +199,8 @@ classdef primary < MetaVision.ui.UIContainer
         obj.setData({[],[]});
       end
     end
+    
+    
   end
   %% Preferences
   methods (Access = protected)

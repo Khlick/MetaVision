@@ -7,6 +7,7 @@ classdef (Abstract) UIContainer < MetaVision.core.UIWindow
   properties (Dependent)
     isClosed
     isready
+    isHidden
   end
   
   properties (Access = protected)
@@ -78,7 +79,6 @@ classdef (Abstract) UIContainer < MetaVision.core.UIWindow
       try
         obj.createUI();
         drawnow;
-        pause(0.2);
       catch x
         delete(obj.container);
         rethrow(x)
@@ -147,6 +147,14 @@ classdef (Abstract) UIContainer < MetaVision.core.UIWindow
       end
     end
     
+    function tf = get.isHidden(obj)
+      try
+        tf = strcmp(obj.container.Visible, 'off');
+      catch
+        error('%s is not valid.', class(obj));
+      end
+    end
+    
     function v = getUI(obj, uiObj, propName)
       uiObj = validatestring(uiObj,properties(obj));
       v = obj.(uiObj).(propName);
@@ -165,8 +173,6 @@ classdef (Abstract) UIContainer < MetaVision.core.UIWindow
       end
       import MetaVision.app.*;
       obj.window.Icon = fullfile(Info.getResourcePath,'icn','favicon.ico');
-      % remove focus from window
-      obj.window.executeJS('window.blur();');
     end
     
     function shutdown(obj)
@@ -184,7 +190,7 @@ classdef (Abstract) UIContainer < MetaVision.core.UIWindow
     
     function show(obj)
       if obj.isClosed, error('%s already closed.',class(obj)); end
-      if strcmpi(obj.container.Visible, 'off')
+      if obj.isHidden
         obj.container.Visible = 'on';
       end
       obj.window.bringToFront;

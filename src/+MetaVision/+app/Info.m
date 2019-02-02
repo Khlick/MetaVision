@@ -5,6 +5,17 @@ classdef Info < handle
       n = 'MetaVision';
     end
     
+    function n = shortName()
+      n = [ ...
+        native2unicode( ...
+        char( ...
+          [956,949,964,945] ...
+        ) ...
+        ), ...
+        'Vision' ...
+        ];
+    end
+    
     function n = extendedName()
       n = 'Meta-data viewer for experimental datafiles.';
     end
@@ -12,8 +23,12 @@ classdef Info < handle
     function d = description()
       d = [ ...
           'Designed for MATLAB, MetaVision is an Iris DVA extension ', ...
-          'for viewing meta-information of experimental data.' ...
+          'for viewing meta-information of experimental data' ...
         ];
+    end
+    
+    function s = site()
+      s = 'https://github.com/Khlick/MetaVision';
     end
 
     function v = version(sub)
@@ -78,7 +93,7 @@ classdef Info < handle
     end
     
     %Get file
-    function p = getFile(title, filter, defaultName)
+    function [p,varargout] = getFile(title,filter,defaultName,varargin)
       %%GETFILE box title, filterSpec, startDefault
       if nargin < 2
         filter = '*';
@@ -86,12 +101,16 @@ classdef Info < handle
       if nargin < 3
         defaultName = '';
       end
-      [filename, pathname] = uigetfile(filter, title, defaultName);
-      if ~all(filename)
+      [filename, pathname,fdx] = uigetfile(filter,title,defaultName,varargin{:});
+      try
+        filename = cellstr(filename);
+      catch
         p = [];
+        [varargout{1:(nargout-1)}] = deal([]);
         return;
       end
-      p = fullfile(pathname, filename);
+      p = strcat(pathname, filename);
+      [varargout{1:(nargout-1)}] = deal(fdx,pathname);
     end
     
     %Get folder
@@ -124,7 +143,8 @@ classdef Info < handle
         Info.description, ...
         Info.version('public'), ...
         Info.owner, ...
-        Info.author ...
+        Info.author, ...
+        Info.site ...
         };
       
     end
