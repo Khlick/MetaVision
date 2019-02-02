@@ -149,6 +149,18 @@ classdef Info < handle
       
     end
     
+    function showWarning(msg)
+      st = dbstack('-completenames',1);
+      id = upper(strrep(st(1).name,'.', ':'));
+      warnCall = sprintf( ...
+        'warning(''%s:%s'',''%s'');', ...
+        upper(MetaVision.app.Info.name), ...
+        id, ...
+        msg ...
+        );
+      eval(warnCall);
+    end
+    
   end
 end
 
