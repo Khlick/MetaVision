@@ -24,6 +24,7 @@ slprj/
 # Custom filters
 TMP*.m
 DEV.m
+UNDEV.m
 ._*
 
 # OS generated files 
