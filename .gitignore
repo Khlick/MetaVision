@@ -26,6 +26,9 @@ TMP*.m
 DEV.m
 UNDEV.m
 ._*
+*.prj
+*.mlappinstall
+MetaVision_resources/
 
 # OS generated files 
 .DS_Store
