@@ -1,7 +1,7 @@
 function app = main(varargin)
 % add the app to the matlab path
 addAppToPath();
-
+pause(0.01);
 % splash screen
 about = MetaVision.ui.about();
 about.show;

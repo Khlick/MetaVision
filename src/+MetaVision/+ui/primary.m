@@ -69,7 +69,12 @@ classdef primary < MetaVision.ui.UIContainer
         %find nests
         notNested = cellfun(@(v) ~isstruct(v),vals,'unif',1);
         if ~isfield(this,'File')
-          nodeName = sprintf('%s %d', name, f);
+          hasName = contains(lower(props),'name');
+          if any(hasName)
+            nodeName = sprintf('%s (%s)',vals{hasName},name);
+          else
+            nodeName = sprintf('%s %d', name, f);
+          end
         else
           nodeName = this.File;
         end
@@ -82,10 +87,26 @@ classdef primary < MetaVision.ui.UIContainer
         end
         obj.PropNodes{end+1} = thisNode;
         %gen nodes
-        if ~any(~notNested), return; end
+        if ~any(~notNested), continue; end
         isNested = find(~notNested);
         for n = 1:length(isNested)
-          obj.recurseInfo(vals{isNested(n)},props{isNested(n)},thisNode);
+          nestedVals = vals{isNested(n)};
+          % if the nested values is an empty struct, don't create a node.
+          areAllEmpty = all( ...
+            arrayfun( ...
+              @(sss)all( ...
+                cellfun( ...
+                  @isempty, ...
+                  struct2cell(sss), ...
+                  'UniformOutput', 1 ...
+                  ) ...
+                ), ...
+              nestedVals, ...
+              'UniformOutput', true ...
+              ) ...
+            );
+          if areAllEmpty, continue; end
+          obj.recurseInfo(nestedVals,props{isNested(n)},thisNode);
         end
       end
     end

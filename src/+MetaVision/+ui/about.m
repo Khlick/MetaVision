@@ -99,7 +99,7 @@ classdef about < MetaVision.ui.UIContainer
         catch x
           %log this
           iter = iter+1;
-          if iter > 5, rethrow(x); end
+          if iter > 20, rethrow(x); end
           pause(0.25);
           continue;
         end
