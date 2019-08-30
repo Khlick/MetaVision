@@ -71,6 +71,7 @@ classdef MainEntry < MetaVision.core.Container
         );
       
       if isempty(files)
+        app.ui.show();
         return;
       end
       
@@ -88,7 +89,10 @@ classdef MainEntry < MetaVision.core.Container
         'Select a data folder', ...
         app.options.workingDirectory ...
         );
-      if isempty(root), return; end
+      if isempty(root)
+        app.ui.show();
+        return
+      end
      app.options.workingDirectory = root;
      
      app.onRetrieveFiles([],[]);

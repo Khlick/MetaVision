@@ -145,8 +145,6 @@ classdef primary < MetaVision.ui.UIContainer
       end
       % Create container
       obj.container.Name = sprintf('%s v%s',Info.name,Info.version('major'));
-      obj.container.SizeChangedFcn = @obj.containerSizeChanged;
-      obj.container.Resize = 'on';
       
       % Create FileMenu
       obj.FileMenu = uimenu(obj.container);
@@ -194,6 +192,10 @@ classdef primary < MetaVision.ui.UIContainer
       
       obj.FileTree.Position = [10, 10, treeW, h-10-10];
       obj.PropTable.Position = [treeW+8+10, 10, w-treeW-7-10-10, h-10-10];
+      
+      % set the container resize fcn
+      obj.container.SizeChangedFcn = @obj.containerSizeChanged;
+      obj.container.Resize = 'on';
     end
     
     % Destruct View
@@ -222,6 +224,8 @@ classdef primary < MetaVision.ui.UIContainer
       end
       obj.FileTree.Position = [10 10 treeW h-10-10];
       obj.PropTable.Position = [treeW+8+10, 10, w-treeW-7-10-10, h-10-10];
+      thisData = obj.PropTable.Data;
+      if isempty(thisData), return; end
       lens = cellfun(@length,obj.PropTable.Data(:,2),'UniformOutput',true);
       tWidth = obj.PropTable.Position(3)-127;
       obj.PropTable.ColumnWidth = {125, max([tWidth,max(lens)*6.55])};
