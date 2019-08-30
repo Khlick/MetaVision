@@ -19,6 +19,10 @@ classdef primary < MetaVision.ui.UIContainer
     PropNodes    
     PropTable       matlab.ui.control.Table
   end
+  properties (Constant = true)
+    TREE_MAX_WIDTH = 300 %Maximum uitree panel width in pixels.
+    TREE_MIN_WIDTH = 80  %Minimum uitree panel width in pixels.
+  end
   properties (Dependent)
     isclear
     hasnodes
@@ -115,6 +119,9 @@ classdef primary < MetaVision.ui.UIContainer
     function setData(obj,d)
       d(:,2) = arrayfun(@unknownCell2Str,d(:,2),'unif',0);
       obj.PropTable.Data = d;
+      lens = cellfun(@length,d(:,2),'UniformOutput',true);
+      tWidth = obj.PropTable.Position(3)-127;
+      obj.PropTable.ColumnWidth = {125, max([tWidth,max(lens)*6.55])};
     end
     
     
@@ -132,8 +139,10 @@ classdef primary < MetaVision.ui.UIContainer
       w = pos(3);
       h = pos(4);
       
-      treeW = min([floor(w*0.33),208]);
-      
+      treeW = min([floor(w*0.33),obj.TREE_MAX_WIDTH]);
+      if treeW < obj.TREE_MIN_WIDTH
+        treeW = obj.TREE_MIN_WIDTH;
+      end
       % Create container
       obj.container.Name = sprintf('%s v%s',Info.name,Info.version('major'));
       obj.container.SizeChangedFcn = @obj.containerSizeChanged;
@@ -207,9 +216,15 @@ classdef primary < MetaVision.ui.UIContainer
       pos = obj.container.Position;
       w = pos(3);
       h = pos(4);
-      treeW = min([floor(w*0.33),208]);
+      treeW = min([floor(w*0.33),obj.TREE_MAX_WIDTH]);
+      if treeW < obj.TREE_MIN_WIDTH
+        treeW = obj.TREE_MIN_WIDTH;
+      end
       obj.FileTree.Position = [10 10 treeW h-10-10];
       obj.PropTable.Position = [treeW+8+10, 10, w-treeW-7-10-10, h-10-10];
+      lens = cellfun(@length,obj.PropTable.Data(:,2),'UniformOutput',true);
+      tWidth = obj.PropTable.Position(3)-127;
+      obj.PropTable.ColumnWidth = {125, max([tWidth,max(lens)*6.55])};
     end
     
     % Selection Node changed.

@@ -1,30 +1,34 @@
 function app = main(varargin)
 % add the app to the matlab path
 addAppToPath();
-pause(0.01);
+
+pause(0.1);
+import MetaVision.ui.*;
+import MetaVision.*;
+
 % splash screen
-about = MetaVision.ui.about();
-about.show;
+splash = about();
+splash.show;
 pause(0.5);
 
 tStart = tic;
 delay = 5; %6 seconds minimum display of about
 
 % options
-primaryView = MetaVision.ui.primary();
+primaryView = primary();
 
 %load views and settings into the applicaiton obj (all listeners in Iris)
-opts = MetaVision.settings.MainEntry.getDefault();
-app = MetaVision.core.MainEntry(primaryView,opts);
-app.setAbout(about);
+opts = settings.MainEntry.getDefault();
+app = core.MainEntry(primaryView,opts);
+app.setAbout(splash);
 
 while toc(tStart) < delay
   % wait
 end
 
 % kill splash if not manually closed by user.
-if ~about.isClosed
-  about.shutdown();
+if ~splash.isClosed
+  splash.shutdown();
 end
 
 % launch the application

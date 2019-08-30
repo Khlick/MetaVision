@@ -170,7 +170,6 @@ classdef MainEntry < MetaVision.core.Container
       delete(LS);
       app.show();
       % dev
-      MetaVision.app.Info.showWarning('warntext');
       if ~isempty(unread)
         MetaVision.app.Info.showWarning( ...
           sprintf( ...
