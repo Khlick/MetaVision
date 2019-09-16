@@ -35,12 +35,14 @@ classdef Info < handle
       if ~nargin
         sub = 'public';
       end
-      status = {1,1,'a'};
+      status = {1,10,'a'};
       switch sub
         case 'major'
           v = sprintf('%d',status{1});
         case 'minor'
           v = sprintf('%02d',status{2});
+        case 'public'
+          v = sprintf('%d.%02d',status{1:2});
         otherwise
           v = sprintf('%d.%02d%s',status{1},status{2},status{3});
       end
@@ -159,6 +161,25 @@ classdef Info < handle
         msg ...
         );
       eval(warnCall);
+    end
+    
+    function [totalBytes,varargout] = getBytes(file)
+      if ischar(file)
+        file = {file};
+      end
+      eachBytes = zeros(length(file),1);
+      for f = 1:length(file)
+        try %#ok<TRYNC>
+          d = dir(file{f});
+          eachBytes(f) = double(d.bytes);
+        end
+      end
+      
+      totalBytes = sum(eachBytes);
+      
+      if nargout > 1
+        varargout{1} = eachBytes;
+      end
     end
     
   end

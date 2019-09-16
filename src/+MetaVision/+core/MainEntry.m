@@ -3,6 +3,7 @@ classdef MainEntry < MetaVision.core.Container
   
   properties (Access = private)
     sessionInfo
+    currentList
     about
   end
   
@@ -35,6 +36,7 @@ classdef MainEntry < MetaVision.core.Container
       
       app.addListener(v,'loadFile', @app.onRetrieveFiles);
       app.addListener(v,'loadDirectory', @app.onRetrieveDirectory);
+      app.addListener(v,'clearFiles', @app.onClearFiles);
       app.addListener(v,'requestAbout', @app.buildAbout);
       app.addListener(v,'requestSupportedFiles', @app.displaySupported);
     end
@@ -80,8 +82,14 @@ classdef MainEntry < MetaVision.core.Container
       readerMethod = MetaVision.parser.getReaderFromExtensionLabel(...
         filterText{fIdx,2} ...
         );
+      readers = rep({readerMethod},numel(files));
       
-      app.parseFiles(files,readerMethod);
+      app.parseFiles(files,readers);
+    end
+    
+    function onClearFiles(app,~,~)
+      app.currentList = [];
+      app.ui.clearView();
     end
     
     function onRetrieveDirectory(app,~,~)
@@ -148,41 +156,98 @@ classdef MainEntry < MetaVision.core.Container
   methods (Access = private)
     
     function parseFiles(app,files,reader)
-      import MetaVision.parser;
+      import MetaVision.parser.*;
       
+      % check against 
+      files = setdiff(files,app.currentList);
+      
+      % collect byte information from files
+      [totalDataSize,eachFileSize] = MetaVision.app.Info.getBytes(files);
+      accDataRead = 0;
+
       LS = MetaVision.ui.loadShow();
-      LS.show;
-      nFiles = length(files);
-      loaded = {};
-      unread = {};
-      for fn = 1:nFiles
-        %load file use try?
+      LS.updatePercent('Parsing files...');
+      pause(1);
+
+      nf = numel(files);
+
+      POOL = gcp('nocreate');
+      if isempty(POOL) && nf > 1
+        fprintf('Please, be patient while we connect to a parallel pool.\n');
+        POOL = parpool('local');
+        pause(0.1);
+      end
+
+      skipped = cell(nf,2);
+      S = cell(1,nf);
+      if ~iscell(files), reader = cellstr(files); end
+      if ~iscell(reader), reader = cellstr(reader); end
+      
+      if nf == 1
+        
         try
-          loaded{end+1} = feval( ...
-            sprintf('MetaVision.parser.%s',reader), ...
-            files{fn} ...
-            ); %#ok<AGROW>
-        catch
-          unread{end+1} = files{fn}; %#ok<AGROW>
+          S{1} = feval( ...
+            str2func(reader{1}), ...
+            files{1} ...
+            );
+        catch er
+          [~,fname,~] = fileparts(files{1});
+          skipped(1,:) = [{fname},{[er.identifier,' => ', er.message]}];
         end
-        %update percentag
-        LS.updatePercent(fn/(nFiles+1));
+        
+      else
+        
+        % using parallel pool
+        % build future calls
+        futures(nf) = parallel.FevalFuture;
+        for I = 1:nf
+          futures(I) = parfeval(POOL, ...
+            str2func(reader{I}), ...
+            1, ... % N outputs
+            files{I} ... % input to reader
+            );
+        end
+        
+        % collect from futures
+        for I = 1:nf
+          [cIdx,S_par] = futures.fetchNext();
+          S{cIdx} = S_par;
+          if isempty(S_par)
+            [~,fname,~] = fileparts(files{cIdx});
+            er = futures(cIdx).Error;
+            skipped(cIdx,:) = [{fname},{[er.identifier,' => ', er.message]}];
+          end
+          accDataRead = accDataRead + eachFileSize(cIdx);
+          if accDataRead/totalDataSize < 1
+            LS.updatePercent(accDataRead/totalDataSize,'Parsing...');
+          end
+        end
+
       end
-      app.ui.buildUI(loaded);
-      LS.updatePercent(1);
-      LS.reset;
+      LS.updatePercent('Done!');
+      pause(1.3);
+      
+      % build the UI
+      app.ui.buildUI(S{:});
+      
+      LS.shutdown();
+      LS.reset();
       delete(LS);
+      
       app.show();
-      % dev
-      if ~isempty(unread)
-        MetaVision.app.Info.showWarning( ...
-          sprintf( ...
-            'The following %d files not found:\n  "%s"\n\n', ...
-            length(unread), ...
-            strjoin(unread, ', ') ...
-          ) ...
-          );  
+      
+      %%% Check skipped and report:
+      skippedSlots = cellfun(@isempty, S, 'UniformOutput', true);
+      skipped = skipped(skippedSlots,:);
+
+      if ~isempty(skipped)
+        fprintf('\nThe Following files were skipped:\n');
+        for ss = 1:size(skipped,1)
+          fprintf('  File: "%s"\n    For reason: "%s".\n', skipped{ss,:});
+        end
       end
+      
+      app.currentList = files(~skippedSlots);
     end
     
   end

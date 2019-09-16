@@ -1,28 +1,70 @@
 classdef loadShow < MetaVision.ui.UIContainer
   %LOADSHOW A dialog box for displaying while long processes load.
   % Properties that correspond to app components
+  events
+    shuttingDown  
+  end
+  
   properties (Access = public)
     Spinner      matlab.ui.container.Panel
     LoadingText  matlab.ui.control.Label
   end
   
   %% Public Functions
-  methods (Access = public)
-    function updatePercent(obj,frac)
-      if frac < 1
-        obj.LoadingText.Text = sprintf('%d%%',fix(frac*100));
-        obj.update;
-        return;
+  methods
+    function updatePercent(obj,frac,preText)
+      if nargin < 3, preText = 'Loading...'; end
+      if obj.isClosed
+        obj.rebuild;
+        pause(0.1);
+      end
+      if obj.isHidden
+        obj.show();
       else
-        obj.LoadingText.Text = sprintf('%d%%',fix(frac*100));
-        obj.update;
-        pause(0.7);
-        obj.LoadingText.Text = 'Loaded!';
-        obj.update;
-        pause(1.3);
+        obj.show();
+      end
+      
+      switch class(frac)
+        case 'double'      
+          if frac > 1
+            exponent = 0;
+            fStart = frac;
+            while frac > 1
+              exponent = exponent-1;
+              frac = fStart * 10^exponent;
+            end
+          end
+
+          obj.LoadingText.Text = sprintf('%s (%d%%)',preText,fix(frac*100));
+          if frac < 1
+            drawnow('update');
+            return;
+          else
+            obj.LoadingText.Text = 'Done!';
+            drawnow('update');
+            pause(1.3);
+          end
+        case 'char'
+          obj.LoadingText.Text = frac;
+          drawnow('update');
+          obj.show();
+          return;
       end
       obj.shutdown;
     end
+    
+    %override shutdown
+    function shutdown(obj)
+      obj.reset; % always show in the center of the screen
+      notify(obj,'shuttingDown');
+      shutdown@MetaVision.ui.UIContainer(obj);
+    end
+    
+    function selfDestruct(obj)
+      % required for integration with menuservices
+      obj.shutdown;
+    end
+    
   end
   %% Startup and Callback Methods
   methods (Access = protected)
@@ -33,7 +75,7 @@ classdef loadShow < MetaVision.ui.UIContainer
         {fullfile(MetaVision.app.Info.getResourcePath, ...
           'scripts', 'spinner.css')}, ...
         false, false, '''');
-      obj.window.executeJS('var css,spinner,panel;');
+      obj.window.executeJS('var css,spinner,panel,text;',1);
       iter = 0;
       while true
         try
@@ -46,7 +88,7 @@ classdef loadShow < MetaVision.ui.UIContainer
               '}' ...
             ]);
           obj.window.executeJS(['css.innerHTML = `',cssFile{1},'`;']);
-          %obj.window.executeJS('document.head.appendChild(css);');
+          
           % add the spinner
           obj.window.executeJS(...
             sprintf(...
@@ -79,22 +121,45 @@ classdef loadShow < MetaVision.ui.UIContainer
         end
         break;
       end
-          
-      
+      % setup the ducktyped animation
+      [~,labID] = mlapptools.getWebElements(obj.LoadingText);
+      textQuery = sprintf( ...
+        'text = dojo.query("[%s = ''%s'']")[0];', ...
+        labID.ID_attr, labID.ID_val ...
+        );
+      iter = 0;
+      while true
+        try
+          obj.window.executeJS(textQuery);
+          obj.window.executeJS('text.classList.add("funtext");');
+        catch x
+          %log x?
+          iter = iter+1;
+          if iter > 20, MetaVision.app.Info.throwError(x.message); end
+          pause(0.25);
+          continue
+        end
+        %success
+        break
+      end
     end
     % Construct view
     function createUI(obj)
+      import MetaVision.app.Info;
       %% Initialize
+      initW = 350;
+      initH = 125;
       pos = obj.position;
       if isempty(pos)
-        initW = 250;
-        initH = 125;
         pos = centerFigPos(initW,initH);
       end
+      
+      pos(3:4) = [initW,initH];
+      
       obj.position = pos; %sets container too
 
       % Setup container
-      obj.container.Name = 'Loading...';
+      obj.container.Name = sprintf('%s v%s',Info.name,Info.version('short'));
 
       % Create Spinner
       obj.Spinner = uipanel(obj.container);
@@ -107,8 +172,9 @@ classdef loadShow < MetaVision.ui.UIContainer
       obj.LoadingText = uilabel(obj.container);
       obj.LoadingText.FontName = MetaVision.app.Aes.uiFontName;
       obj.LoadingText.FontSize = 28;
-      obj.LoadingText.Position = [105 45 120 35];
+      obj.LoadingText.Position = [105 45 initW-10-105 35];
       obj.LoadingText.Text = 'Loading...';
     end
+    
   end
 end

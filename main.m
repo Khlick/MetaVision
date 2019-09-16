@@ -2,7 +2,7 @@ function app = main(varargin)
 % add the app to the matlab path
 addAppToPath();
 
-pause(0.1);
+pause(0.05);
 import MetaVision.ui.*;
 import MetaVision.*;
 
@@ -11,8 +11,21 @@ splash = about();
 splash.show;
 pause(0.5);
 
+cleanup = onCleanup(@() splash.shutdown() );
+
+p = gcp('nocreate');
+
+if isempty(p)
+  fprintf('Please, be patient while we connect to a local parallel pool.\n');
+  p = parpool('local');
+  % setting the idle timeout to something pretty long
+  p.IdleTimeout = 30;
+  delay = 2; %reduce the wait time for the splash to show
+else
+  delay = 5; %6 seconds minimum display of about
+end
+
 tStart = tic;
-delay = 5; %6 seconds minimum display of about
 
 % options
 primaryView = primary();
@@ -24,11 +37,6 @@ app.setAbout(splash);
 
 while toc(tStart) < delay
   % wait
-end
-
-% kill splash if not manually closed by user.
-if ~splash.isClosed
-  splash.shutdown();
 end
 
 % launch the application

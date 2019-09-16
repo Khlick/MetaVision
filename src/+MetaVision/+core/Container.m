@@ -150,7 +150,7 @@ classdef (Abstract) Container < handle
     
     % override this function to handle ui close event
     function onUIClose(obj,~,~)
-      obj.stop;
+      obj.stop();
     end
     
   end
