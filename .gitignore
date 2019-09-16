@@ -26,7 +26,6 @@ TMP*.m
 DEV.m
 UNDEV.m
 ._*
-*.prj
 *.mlappinstall
 MetaVision_resources/
 

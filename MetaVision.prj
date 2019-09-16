@@ -1,0 +1,104 @@
+<deployment-project plugin="plugin.apptool" plugin-version="1.0">
+  <configuration build-checksum="434862952" file="F:\OneDrive\Documents\Sampath\Apps\MetaVision\MetaVision.prj" location="F:\OneDrive\Documents\Sampath\Apps\MetaVision" name="MetaVision" target="target.mlapps" target-name="Package App">
+    <param.appname>MetaVision</param.appname>
+    <param.authnamewatermark>Khris Griffis</param.authnamewatermark>
+    <param.email>khrisgriffis@ucla.edu</param.email>
+    <param.company>Sampath Lab</param.company>
+    <param.icon>${PROJECT_ROOT}\MetaVision_resources\icon_24.png</param.icon>
+    <param.icons>
+      <file>${PROJECT_ROOT}\MetaVision_resources\icon_48.png</file>
+      <file>${PROJECT_ROOT}\MetaVision_resources\icon_24.png</file>
+      <file>${PROJECT_ROOT}\MetaVision_resources\icon_16.png</file>
+    </param.icons>
+    <param.summary>Metadata viewer for experimental files.</param.summary>
+    <param.description />
+    <param.screenshot>${PROJECT_ROOT}\_external\MetaVision_v1_screenshot.jpg</param.screenshot>
+    <param.version>1.1</param.version>
+    <param.products.name>
+      <item>MATLAB</item>
+    </param.products.name>
+    <param.products.id>
+      <item>1</item>
+    </param.products.id>
+    <param.products.version>
+      <item>9.6</item>
+    </param.products.version>
+    <param.platforms />
+    <param.output>F:\OneDrive\Documents\Sampath\Apps\PackagedApp\MetaVision</param.output>
+    <param.guid>5d1b49f1-1111-422e-9789-a97fc134bd19</param.guid>
+    <unset>
+      <param.description />
+      <param.platforms />
+    </unset>
+    <fileset.main>
+      <file>${PROJECT_ROOT}\main.m</file>
+    </fileset.main>
+    <fileset.depfun />
+    <fileset.resources>
+      <file>${PROJECT_ROOT}\lib</file>
+      <file>${PROJECT_ROOT}\src</file>
+      <file>${PROJECT_ROOT}\src\resources</file>
+    </fileset.resources>
+    <fileset.package />
+    <build-deliverables>
+      <file location="F:\OneDrive\Documents\Sampath\Apps\PackagedApp" name="MetaVision" optional="false">F:\OneDrive\Documents\Sampath\Apps\PackagedApp\MetaVision</file>
+    </build-deliverables>
+    <workflow />
+    <matlab>
+      <root>C:\Program Files\MATLAB\2019a</root>
+      <toolboxes>
+        <toolbox name="matlabcoder" />
+        <toolbox name="embeddedcoder" />
+        <toolbox name="gpucoder" />
+        <toolbox name="fixedpoint" />
+        <toolbox name="matlabhdlcoder" />
+        <toolbox name="neuralnetwork" />
+      </toolboxes>
+      <toolbox>
+        <matlabcoder>
+          <enabled>true</enabled>
+        </matlabcoder>
+      </toolbox>
+      <toolbox>
+        <embeddedcoder>
+          <enabled>true</enabled>
+        </embeddedcoder>
+      </toolbox>
+      <toolbox>
+        <gpucoder>
+          <enabled>true</enabled>
+        </gpucoder>
+      </toolbox>
+      <toolbox>
+        <fixedpoint>
+          <enabled>true</enabled>
+        </fixedpoint>
+      </toolbox>
+      <toolbox>
+        <matlabhdlcoder>
+          <enabled>true</enabled>
+        </matlabhdlcoder>
+      </toolbox>
+      <toolbox>
+        <neuralnetwork>
+          <enabled>true</enabled>
+        </neuralnetwork>
+      </toolbox>
+    </matlab>
+    <platform>
+      <unix>false</unix>
+      <mac>false</mac>
+      <windows>true</windows>
+      <win2k>false</win2k>
+      <winxp>false</winxp>
+      <vista>false</vista>
+      <linux>false</linux>
+      <solaris>false</solaris>
+      <osver>10.0</osver>
+      <os32>false</os32>
+      <os64>true</os64>
+      <arch>win64</arch>
+      <matlab>true</matlab>
+    </platform>
+  </configuration>
+</deployment-project>
