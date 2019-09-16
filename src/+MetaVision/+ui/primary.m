@@ -48,9 +48,8 @@ classdef primary < MetaVision.ui.UIContainer
       if obj.isClosed, obj.rebuild(); end
       
       obj.show();
-      filesData = [varargin{:}]; % array of structs
       nChild = numel(obj.FileTree.Children);
-      obj.recurseInfo(filesData, 'File', obj.FileTree, nChild);
+      obj.recurseInfo(varargin, 'File', obj.FileTree, nChild);
     end
     
     function tf = get.isclear(obj)
